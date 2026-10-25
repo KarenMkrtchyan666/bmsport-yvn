@@ -1,0 +1,1 @@
+Model catalog adapted from https://github.com/serhatkildaci/global-car-models (MIT). Retrieved 2026-10-26. Names normalized and catalog extended locally. Coverage is not guaranteed exhaustive; manual entry is supported.

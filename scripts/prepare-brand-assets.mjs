@@ -1,0 +1,11 @@
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+const catalog=await fetch('https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/data.json');
+if(!catalog.ok)throw new Error(`Logo catalog download failed (${catalog.status})`);
+const data=await catalog.json();
+const normalize=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const names=[...readFileSync('public/brands.js','utf8').split('].sort')[0].matchAll(/'([^']+)'/g)].map(m=>m[1]);
+mkdirSync('public/brand-logos',{recursive:true});
+const result={};let index=0;
+await Promise.all(Array.from({length:8},async()=>{while(index<names.length){const name=names[index++],entry=data.find(e=>normalize(e.name)===normalize(name));if(!entry)continue;try{const r=await fetch(entry.image.thumb);if(!r.ok)continue;const bytes=Buffer.from(await r.arrayBuffer());writeFileSync(`public/brand-logos/${entry.slug}.png`,bytes);result[normalize(name)]={name,logo:`/brand-logos/${entry.slug}.png`};}catch{}}}));
+writeFileSync('public/brand-logos.json',JSON.stringify(result,null,2));
+console.log(`Saved ${Object.keys(result).length} brand logos locally.`);

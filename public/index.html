@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BMSPORT YVN · Диагностика</title><link rel="stylesheet" href="/styles.css"><script type="module" src="/app.js"></script></head>
+<body>
+<header><div class="brand-lockup"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><div><strong>BMSPORT <span>YVN</span></strong><p>Диагностика · история обслуживания</p></div></div><div class="header-meta"><span class="header-label">СЕРВИСНОЕ ПРОСТРАНСТВО</span><div id="service"></div></div></header>
+<main><aside><div class="heading"><div><p class="eyebrow">ЖУРНАЛ СЕРВИСА</p><h2>Посещения <span id="visits-count" class="count-badge">0</span></h2></div><button id="new" type="button">+ Новое</button></div><label class="search-label">Поиск<input id="search" placeholder="Клиент, автомобиль, VIN"></label><div id="visits"></div><p class="sidebar-note">Клиенты, диагностика и документы — в одной истории.</p></aside>
+<section><div class="heading"><div><p class="eyebrow">СЕРВИСНЫЙ ОТЧЁТ</p><h1 id="title">Новое посещение</h1></div><span id="state">Не сохранено</span></div>
+<form id="form" novalidate>
+<div class="vehicle-identity"><div class="vehicle-section-heading"><h2 class="vehicle-identity-title">Карточка автомобиля</h2><span class="section-kicker">АВТОПОИСК ПО VIN</span></div>
+<article id="vehicle-preview" class="vehicle-preview" hidden aria-label="Фотография определённой модели автомобиля" aria-live="polite">
+<div class="vehicle-photo-media"><img hidden alt=""><div data-photo-placeholder class="vehicle-photo-placeholder"><svg viewBox="0 0 240 110" aria-hidden="true"><path d="M30 74l10-27 38-8 24-21h51l31 25 28 8 9 23v14H26V74zm50-34h91l-23-17h-42z" fill="currentColor"/><circle cx="66" cy="84" r="17" fill="#e5edf5"/><circle cx="66" cy="84" r="9" fill="currentColor"/><circle cx="182" cy="84" r="17" fill="#e5edf5"/><circle cx="182" cy="84" r="9" fill="currentColor"/></svg><p data-photo-status>Подбираем фотографию…</p></div></div>
+<div class="vehicle-photo-info"><p class="eyebrow">ВНЕШНИЙ ВИД МОДЕЛИ</p><h2 data-photo-title></h2><p data-photo-specs class="vehicle-photo-specs"></p><p data-photo-caption class="vehicle-photo-caption"></p><div data-photo-credit class="vehicle-photo-credit"></div><button type="button" hidden>Повторить загрузку фото</button></div></article>
+<div class="vehicle-identity-row">
+<div class="vin-field"><label for="vin">VIN</label><input id="vin" name="vin" maxlength="32" placeholder="17 символов VIN" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="vin-status"><button id="decode-vin" type="button">Определить по VIN</button><input type="hidden" name="vinSource"></div>
+<div class="brand-picker"><label for="brand">Марка автомобиля</label><input id="brand" name="brand" placeholder="Выберите или введите марку" maxlength="200" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="brand-options"><div id="brand-options" role="listbox" aria-label="Марки автомобилей" hidden></div></div>
+<div class="brand-picker" id="model-picker" hidden><label for="model">Модель автомобиля</label><input id="model" name="model" placeholder="Выберите или введите модель" maxlength="200" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="model-options"><div id="model-options" role="listbox" aria-label="Модели выбранной марки" hidden></div></div>
+</div>
+<p id="vin-status" class="vin-status" role="status" aria-live="polite">После ввода 17 символов выполняется автопоиск. Онлайн-источникам передаётся только VIN.</p><div id="vin-sources"></div>
+</div>
+<nav class="workspace-tabs" role="tablist" aria-label="Разделы отчёта">
+<button type="button" id="tab-visit" role="tab" data-tab="visit" aria-selected="true" aria-controls="panel-visit">Посещение</button>
+<button type="button" id="tab-diagnostics" role="tab" data-tab="diagnostics" aria-selected="false" aria-controls="panel-diagnostics" tabindex="-1">Диагностика <span id="diagnostic-count" class="tab-count" aria-hidden="true">0</span></button>
+<button type="button" id="tab-history" role="tab" data-tab="history" aria-selected="false" aria-controls="panel-history" tabindex="-1">История</button>
+<button type="button" id="tab-documents" role="tab" data-tab="documents" aria-selected="false" aria-controls="panel-documents" tabindex="-1">Документы</button>
+</nav>
+<div id="panel-visit" class="panel-card" role="tabpanel" aria-labelledby="tab-visit">
+<div class="panel-intro"><p class="eyebrow">01 / ПОСЕЩЕНИЕ</p><h2>Клиент и данные визита</h2><p>Основная информация для сервисного отчёта.</p></div>
+<div class="grid">
+<label>Клиент *<input name="client" required maxlength="200"></label><label>Дата *<input name="date" type="date" required></label>
+<label>Автомобиль *<input name="vehicle" placeholder="BMW 530i · G30" required maxlength="200"></label><label>Госномер<input name="plate" maxlength="200"></label>
+<label>Пробег, км<input name="mileage" inputmode="numeric" maxlength="200"></label>
+<div id="vin-details" hidden><label>Тип кузова<input name="bodyStyle" maxlength="200" placeholder="Например, седан или купе"></label><label>Модельный год<input name="modelYear" maxlength="4" inputmode="numeric"></label></div></div>
+</div>
+<div id="panel-diagnostics" class="panel-card" role="tabpanel" aria-labelledby="tab-diagnostics" hidden>
+<div class="panel-intro"><p class="eyebrow">02 / ДИАГНОСТИКА</p><h2>Состояние автомобиля</h2><p>Ошибки, выполненные работы и следующие шаги.</p></div>
+<div class="heading"><h2>Ошибки и выполненные работы</h2><button id="add" type="button">+ Добавить ошибку</button></div><div id="issues"></div>
+<div id="diagnostic-empty" class="empty-state"><span class="empty-symbol" aria-hidden="true">＋</span><h3>Начните с диагностики</h3><p>Добавьте ошибки вручную или загрузите PDF с результатами сканирования.</p><button type="button" data-open-documents>Загрузить PDF диагностики</button></div>
+<label>Рекомендации<textarea name="notes" rows="4" maxlength="10000" placeholder="Что проверить при следующем посещении"></textarea></label>
+</div>
+<div id="panel-documents" class="panel-card" role="tabpanel" aria-labelledby="tab-documents" hidden>
+<div class="panel-intro"><p class="eyebrow">04 / ДОКУМЕНТЫ</p><h2>Диагностика и отчёт</h2><p>Загрузите исходный PDF, проверьте распознавание и сохраните результат.</p></div>
+<fieldset><legend>PDF диагностики</legend><label>Прикрепить PDF диагностики<input id="diagnostic-file" type="file" accept="application/pdf,.pdf" aria-describedby="diagnostic-help"></label><p id="diagnostic-help">До 10 МБ и 40 страниц. В отчёт попадают блок, код и описание только из строки кода, с автоматическим переводом на английский. Нижние служебные строки исключаются.</p><div id="diagnostic-info"></div><button id="remove-diagnostic" type="button" hidden>Убрать PDF диагностики</button></fieldset>
+</div>
+<div id="panel-history" class="panel-card" role="tabpanel" aria-labelledby="tab-history" hidden>
+<div class="panel-intro"><p class="eyebrow">03 / ИСТОРИЯ</p><h2>История этого автомобиля</h2><p>Предыдущие посещения, найденные по полному VIN.</p></div><div id="vehicle-history"></div>
+</div>
+<div class="save-bar"><div class="save-feedback"><span class="save-hint">Сервисный отчёт</span><p id="message" role="status" aria-live="polite"></p></div><div class="actions"><button id="pdf" type="button">Скачать PDF</button><button type="submit" class="primary">Сохранить посещение</button></div></div>
+</form></section></main>
+<template id="issue-template"><fieldset><legend>Диагностическая ошибка</legend><div class="issue-grid"><label>Код<input data-field="code" placeholder="Например, 118001" maxlength="200"></label><label>Статус<select data-field="status"><option value="remaining">Осталось</option><option value="fixed">Устранено</option><option value="observed">Требует проверки</option></select></label></div><label>Описание *<textarea data-field="description" required maxlength="5000" rows="2"></textarea></label><label>Выполненные работы<textarea data-field="work" maxlength="5000" rows="2"></textarea></label><button type="button" data-remove>Убрать ошибку</button></fieldset></template>
+</body></html>

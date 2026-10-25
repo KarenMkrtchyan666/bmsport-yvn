@@ -1,0 +1,53 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createApp } from '../server/app.js';
+
+test('visits survive restart; updates, validation and Cyrillic PDF work', async () => {
+  const directory = mkdtempSync(join(tmpdir(),'bmsport-test-'));
+  const path = join(directory,'test.sqlite');
+  let instance = createApp(path);
+  let server;
+  const start = async () => { server = instance.app.listen(0,'127.0.0.1'); await new Promise(resolve => server.once('listening',resolve)); return `http://127.0.0.1:${server.address().port}`; };
+  const stop = async () => { await new Promise(resolve => server.close(resolve)); instance.store.close(); };
+  let url = await start();
+  try {
+    assert.equal((await fetch(url)).status,200);
+    assert.equal((await (await fetch(`${url}/api/service`)).json()).name,'BMSPORT YVN');
+    assert.equal((await fetch(`${url}/api/visits`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,400);
+    const payload = { client:'Карен',date:'2026-10-22',vehicle:'BMW 530i',vin:'TEST',issues:[{code:'118001',description:'Ошибка смеси',status:'remaining',work:''}],notes:'Повторная диагностика' };
+    let response = await fetch(`${url}/api/visits`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    assert.equal(response.status,201); const visit = await response.json();
+    await stop(); instance = createApp(path); url = await start();
+    const list = await (await fetch(`${url}/api/visits`)).json();
+    assert.equal(list[0].client,'Карен'); assert.equal(list[0].id,visit.id);
+    payload.issues[0].status = 'fixed'; payload.issues[0].work = 'Устранён подсос воздуха';
+    response = await fetch(`${url}/api/visits/${visit.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    assert.equal(response.status,200); assert.equal((await response.json()).issues[0].status,'fixed');
+    response = await fetch(`${url}/api/visits/${visit.id}/pdf`);
+    assert.equal(response.status,200); assert.match(response.headers.get('content-type'),/application\/pdf/);
+    const bytes = Buffer.from(await response.arrayBuffer()); assert.equal(bytes.subarray(0,5).toString(),'%PDF-'); assert.ok(bytes.length > 5000);
+    assert.equal((await fetch(`${url}/api/visits/missing/pdf`)).status,404);
+    const attachment = Buffer.from('%PDF-1.4\nTest diagnostic attachment\n%%EOF');
+    payload.diagnosticPdf = { name: 'Диагностика.pdf', data: attachment.toString('base64') };
+    response = await fetch(`${url}/api/visits/${visit.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    assert.equal(response.status,200);
+    assert.equal((await response.json()).diagnosticPdf.name,'Диагностика.pdf');
+    await stop(); instance = createApp(path); url = await start();
+    response = await fetch(`${url}/api/visits/${visit.id}/diagnostic-pdf`);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()),attachment);
+    assert.ok(!(await (await fetch(`${url}/api/visits`)).json())[0].diagnosticPdf.data);
+    delete payload.diagnosticPdf;
+    await fetch(`${url}/api/visits/${visit.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    assert.equal((await fetch(`${url}/api/visits/${visit.id}/diagnostic-pdf`)).status,200);
+    payload.diagnosticPdf = { name:'bad.pdf',data:Buffer.from('not a PDF').toString('base64') };
+    assert.equal((await fetch(`${url}/api/visits/${visit.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})).status,400);
+    payload.diagnosticPdf = null;
+    await fetch(`${url}/api/visits/${visit.id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    assert.equal((await fetch(`${url}/api/visits/${visit.id}/diagnostic-pdf`)).status,404);
+    payload.issues[0].status='invalid';
+    assert.equal((await fetch(`${url}/api/visits`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})).status,400);
+  } finally { await stop(); rmSync(directory,{recursive:true,force:true}); }
+});

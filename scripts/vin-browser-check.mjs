@@ -1,0 +1,33 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {createApp} from '../server/app.js';
+import {decodeVin} from '../server/vin.js';
+const directory=mkdtempSync(join(tmpdir(),'bmsport-vin-browser-'));
+const {app,store}=createApp(join(directory,'test.sqlite'),{decodeVehicle:(vin,history)=>{const result=decodeVin(vin,history);return {...result,sourcesUsed:result.matched?[result.source]:[]};},findVehicleImage:async()=>({found:false,reason:'not-found'})});
+const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
+let browser;
+try{
+  browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage();page.setDefaultTimeout(15000);
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(`http://127.0.0.1:${server.address().port}`);
+  const vin=page.getByLabel('VIN',{exact:true}),brand=page.getByLabel('Марка автомобиля',{exact:true}),model=page.getByLabel('Модель автомобиля',{exact:true}),vehicle=page.getByLabel('Автомобиль *',{exact:true});
+  await vin.fill('wba ev33 0000000001');await page.locator('#vin-status').filter({hasText:'Определено:'}).waitFor();
+  assert.equal(await vin.inputValue(),'WBAEV330000000001');assert.equal(await brand.inputValue(),'BMW');assert.equal(await model.inputValue(),'3 серия · E46');assert.equal(await vehicle.inputValue(),'BMW 325i · E46');
+  await vin.fill('WBAZZZZ0000000001');await page.locator('#vin-status').filter({hasText:'Точного кода модели'}).waitFor();assert.equal(await model.inputValue(),'');assert.equal(await vehicle.inputValue(),'');
+  await vin.fill('WBAWC730000000001');await page.locator('#vin-status').filter({hasText:'Определено:'}).waitFor();assert.equal(await model.inputValue(),'3 серия · E92');
+  await page.getByLabel('Клиент *',{exact:true}).fill('Тест');await page.getByRole('button',{name:'Сохранить посещение',exact:true}).click();await page.locator('#message').filter({hasText:'Посещение сохранено'}).waitFor();
+  await page.reload();await page.getByRole('button',{name:/BMW 335xi/}).click();assert.equal(await model.inputValue(),'3 серия · E92');
+  await vin.fill('WDB2030351A000001');await page.locator('#vin-status').filter({hasText:'Определено: Mercedes-Benz'}).waitFor();assert.equal(await model.inputValue(),'C-Class · W203');assert.equal(await vehicle.inputValue(),'Mercedes-Benz C 180 · W203');assert.equal(await page.getByLabel('Модельный год',{exact:true}).inputValue(),'');assert.equal(await page.getByRole('link',{name:'Mercedes-Benz Public Archive',exact:true}).count(),1);
+  await page.route('**/api/vin/decode',route=>route.fulfill({json:{matched:true,brand:'Honda',model:'Accord',vehicle:'Honda Accord EX-V6',bodyStyle:'Купе',modelYear:'2003',source:'nhtsa',sourcesUsed:['nhtsa'],chassis:'',message:'Определено: Honda Accord. Тип кузова: Купе. Код кузова не предоставлен.'}}));
+  await vin.fill('1HGZZZZ0000000001');await page.locator('#vin-status').filter({hasText:'Определено: Honda'}).waitFor();
+  assert.equal(await page.getByLabel('Тип кузова',{exact:true}).inputValue(),'Купе');assert.equal(await page.getByLabel('Модельный год',{exact:true}).inputValue(),'2003');assert.equal(await page.getByRole('link',{name:'NHTSA vPIC',exact:true}).count(),1);
+  await page.getByRole('button',{name:'Сохранить посещение',exact:true}).click();await page.locator('#message').filter({hasText:'Посещение сохранено'}).waitFor();
+  await page.reload();await page.getByRole('button',{name:/Honda Accord/}).click();assert.equal(await page.getByLabel('Тип кузова',{exact:true}).inputValue(),'Купе');assert.equal(await page.getByRole('link',{name:'NHTSA vPIC',exact:true}).count(),1);
+  await page.screenshot({path:'test-results/vin-online.png',fullPage:true});
+  await page.route('**/api/vin/decode',async route=>{await new Promise(r=>setTimeout(r,800));await route.fulfill({json:{matched:true,brand:'BMW',model:'3 серия · E46',vehicle:'BMW 325i · E46',message:'Определено: тест'}});});
+  await vin.fill('WBAEV330000000001');await page.locator('#vin-status').filter({hasText:'Определяем марку'}).waitFor();await vehicle.fill('Ручное описание');await page.locator('#vin-status').filter({hasText:'изменён вручную'}).waitFor();assert.equal(await vehicle.inputValue(),'Ручное описание');
+  assert.deepEqual(errors,[]);console.log('VIN browser OK: automatic fill, unknown VIN, saved vehicle, manual edits protected.');
+}finally{await browser?.close();await new Promise(r=>server.close(r));store.close();rmSync(directory,{recursive:true,force:true});}
