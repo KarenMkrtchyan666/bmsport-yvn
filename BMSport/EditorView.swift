@@ -21,6 +21,7 @@ struct EditorView: View {
     @State private var recognizing = false
     @State private var originalPDF: SharedPDF?
     @State private var vinStatus = ""
+    @State private var generatedVehicle: String?
     @AppStorage("bmsport-language") private var language = "ru"
     @AppStorage("bmsport-online-photos") private var onlinePhotos = false
     private enum VehiclePickerKind: String, Identifiable { case brand, model; var id: String { rawValue } }
@@ -140,10 +141,13 @@ struct EditorView: View {
             }
         }
         .task(id: data.vin) {
-            guard VehicleCatalog.valid(VehicleCatalog.normalize(data.vin)) else { return }
+            guard VehicleCatalog.valid(VehicleCatalog.normalize(data.vin)) else {
+                if let generatedVehicle, data.vehicle == generatedVehicle { data.brand = nil; data.model = nil; data.vehicle = ""; data.bodyStyle = nil; self.generatedVehicle = nil }
+                return
+            }
             do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
             // Automatic lookup fills blank vehicle fields; explicit decode may replace manual input.
-            if data.vehicle.isEmpty { decodeVIN() }
+            if data.vehicle.isEmpty || data.vehicle == generatedVehicle { decodeVIN() }
         }
     }
     private func field(_ title: String, text: Binding<String>, id: String) -> some View {
@@ -155,12 +159,14 @@ struct EditorView: View {
         data.vin = vin
         if let match = VehicleCatalog.decode(vin) {
             data.brand = match.brand; data.model = match.model; data.vehicle = match.vehicle; data.bodyStyle = match.bodyStyle
+            generatedVehicle = match.vehicle
             vinStatus = language == "en" ? "Found in local catalog. Check details before saving." : "Найдено в локальном каталоге. Проверьте данные перед сохранением."
         } else {
+            if let generatedVehicle, data.vehicle == generatedVehicle { data.brand = nil; data.model = nil; data.vehicle = ""; data.bodyStyle = nil; self.generatedVehicle = nil }
             do {
                 let records = try context.fetch(FetchDescriptor<DiagnosticReport>())
                 let matches = records.compactMap { try? $0.read() }.filter { VehicleCatalog.normalize($0.vin) == vin && !$0.vehicle.isEmpty }
-                if let saved = matches.first, Set(matches.map(\.modelIdentity)).count == 1 { data.brand = saved.brand; data.model = saved.model; data.vehicle = saved.vehicle; data.bodyStyle = saved.bodyStyle; vinStatus = language == "en" ? "Found in saved visits." : "Найдено в сохранённых посещениях."; return }
+                if let saved = matches.first, Set(matches.map(\.modelIdentity)).count == 1 { data.brand = saved.brand; data.model = saved.model; data.vehicle = saved.vehicle; data.bodyStyle = saved.bodyStyle; generatedVehicle = saved.vehicle; vinStatus = language == "en" ? "Found in saved visits." : "Найдено в сохранённых посещениях."; return }
             } catch { message = error.localizedDescription; return }
             if let brand = VehicleCatalog.brand(for: vin), data.brand?.isEmpty != false { data.brand = brand }
             vinStatus = language == "en" ? "Not in the local catalog. Select make and model manually. VIN stays on this device." : "В локальном каталоге нет точной модели. Выберите вручную. VIN остаётся на устройстве."

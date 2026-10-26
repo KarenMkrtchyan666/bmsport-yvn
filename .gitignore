@@ -1,5 +1,7 @@
 .DS_Store
 DerivedData/
+Build/
+TestResults.xcresult/
 *.xcuserstate
 xcuserdata/
 *.ipa

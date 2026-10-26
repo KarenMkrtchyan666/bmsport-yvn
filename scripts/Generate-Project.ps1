@@ -36,6 +36,8 @@ foreach ($name in @('BMSport', 'BMSportTests', 'BMSportUITests')) {
     Obj $resources "isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ($($resourceBuilds -join ',')); runOnlyForDeploymentPostprocessing = 0;"
     $settings = 'CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 1.0; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; PRODUCT_NAME = "$(TARGET_NAME)";'
     $settings += " PRODUCT_BUNDLE_IDENTIFIER = am.bmsport.yvn.$name;"
+    $settings += ' GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = config/Native-Info.plist;'
+    if ($isApp) { $settings += ' PRODUCT_BUNDLE_PACKAGE_TYPE = APPL;' } else { $settings += ' PRODUCT_BUNDLE_PACKAGE_TYPE = BNDL;' }
     $settings += ' INFOPLIST_KEY_CFBundleIdentifier = "$(PRODUCT_BUNDLE_IDENTIFIER)"; INFOPLIST_KEY_CFBundleExecutable = "$(EXECUTABLE_NAME)"; INFOPLIST_KEY_CFBundleName = "$(PRODUCT_NAME)"; INFOPLIST_KEY_CFBundlePackageType = "$(PRODUCT_BUNDLE_PACKAGE_TYPE)";'
     $dependencies = ''
     if ($isApp) {
