@@ -124,6 +124,8 @@
 "Справочное фото модели. Поколение, цвет и комплектация могут отличаться." = "Reference photo. Generation, color and equipment may differ.";
 "Фотография определённой модели автомобиля" = "Reference photo of the identified vehicle model";
 "BMSPORT YVN · Диагностика" = "BMSPORT YVN · Diagnostics";
+"Черновик сохранён" = "Draft saved";
+"Отчёт сохранён" = "Report saved";
 "Клиент" = "Customer";
 "Имя клиента" = "Customer name";
 "Телефон" = "Phone";

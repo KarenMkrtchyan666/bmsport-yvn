@@ -36,6 +36,7 @@ foreach ($name in @('BMSport', 'BMSportTests', 'BMSportUITests')) {
     Obj $resources "isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ($($resourceBuilds -join ',')); runOnlyForDeploymentPostprocessing = 0;"
     $settings = 'CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 1.0; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; PRODUCT_NAME = "$(TARGET_NAME)";'
     $settings += " PRODUCT_BUNDLE_IDENTIFIER = am.bmsport.yvn.$name;"
+    $settings += ' INFOPLIST_KEY_CFBundleIdentifier = "$(PRODUCT_BUNDLE_IDENTIFIER)"; INFOPLIST_KEY_CFBundleExecutable = "$(EXECUTABLE_NAME)"; INFOPLIST_KEY_CFBundleName = "$(PRODUCT_NAME)"; INFOPLIST_KEY_CFBundlePackageType = "$(PRODUCT_BUNDLE_PACKAGE_TYPE)";'
     $dependencies = ''
     if ($isApp) {
         $settings += ' INFOPLIST_KEY_CFBundleDisplayName = "BMSPORT YVN"; INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business"; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";'

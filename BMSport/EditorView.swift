@@ -93,7 +93,7 @@ struct EditorView: View {
                 Button("Сохранить черновик") { save(draft: true) }.accessibilityIdentifier("saveDraft")
                 Button("Завершить отчёт") { if validate() { save(draft: false) } }.accessibilityIdentifier("complete")
                 Button { export() } label: { Label("PDF / Поделиться", systemImage: "square.and.arrow.up") }.accessibilityIdentifier("exportPDF")
-                if !saved.isEmpty { Text(saved).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("saveStatus") }
+                if !saved.isEmpty { Text(LocalizedStringKey(saved)).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("saveStatus") }
             } footer: { Text("Черновик сохраняется автоматически после изменения и при уходе в фон. PDF доступен после проверки обязательных полей. VIN и госномер можно оставить пустыми.") }
         }
         .navigationTitle("Диагностический отчёт")

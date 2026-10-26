@@ -13,8 +13,12 @@ for(const file of ['package.json','package-lock.json','START-WINDOWS.cmd'])copyF
 mkdirSync(join(destination,'scripts'));copyFileSync('scripts/desktop-launcher.mjs',join(destination,'scripts/desktop-launcher.mjs'));
 execFileSync('cmd.exe',['/d','/c','npm.cmd ci --omit=dev --no-audit --no-fund'],{cwd:destination,stdio:'inherit',windowsHide:true});
 mkdirSync(join(destination,'runtime'));copyFileSync(process.execPath,join(destination,'runtime/node.exe'));
+const license=await fetch(`https://raw.githubusercontent.com/nodejs/node/${process.version}/LICENSE`);
+if(!license.ok)throw new Error('Cannot include Node.js redistribution license');
+writeFileSync(join(destination,'runtime/LICENSE-Node.txt'),await license.text());
 mkdirSync(join(destination,'data'));
 writeFileSync(join(destination,'READ-ME.txt'),'BMSPORT YVN — Windows x64\r\n\r\nExtract this entire folder, then double-click START-WINDOWS.cmd.\r\nNo Node.js install, external server or connection to the developer PC is required.\r\nKeep the console open while using the app. Ctrl+C stops it.\r\nDatabase and attachments: data/bmsport.sqlite. Back up the entire data folder.\r\nOCR, PDF and translation models are included. Internet is optional for VIN online fallbacks and reference photos.\r\nDo not run directly inside the ZIP. Each extracted copy starts with an empty database.\r\nThis build is for Windows x64 only. iOS source is available separately in the repository.\r\n');
 const archive=destination+'.zip';if(existsSync(archive))throw new Error('Archive already exists');
-execFileSync('tar.exe',['-a','-c','-f',archive,'-C',resolve(destination,'..'),destination.split('\\').at(-1)],{stdio:'inherit',windowsHide:true});
+const folder=destination.split('\\').at(-1);
+execFileSync('tar.exe',['-a','-c','-f',archive,`--exclude=${folder}/data`,'-C',resolve(destination,'..'),folder],{stdio:'inherit',windowsHide:true});
 console.log(`Portable archive: ${archive} (${Math.round(statSync(archive).size/1024/1024)} MB)`);

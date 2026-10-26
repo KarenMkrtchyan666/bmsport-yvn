@@ -33,7 +33,7 @@ struct HistoryView: View {
                                     Text(data.vehicle.isEmpty ? "Новый отчёт" : data.vehicle).font(.headline)
                                     Text(data.client.isEmpty ? "Клиент не указан" : data.client)
                                     Text("\(data.plate) · \(data.date.formatted(date: .numeric, time: .omitted))").font(.caption)
-                                    Text(report.isDraft ? "Черновик" : "Завершён").font(.caption.bold()).foregroundStyle(report.isDraft ? .orange : .green)
+                                    Text(LocalizedStringKey(report.isDraft ? "Черновик" : "Завершён")).font(.caption.bold()).foregroundStyle(report.isDraft ? .orange : .green)
                                 }
                             }
                         } else {

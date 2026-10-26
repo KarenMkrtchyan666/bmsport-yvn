@@ -4,6 +4,7 @@ import {resolve,join} from 'node:path';
 import {mkdtempSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import assert from 'node:assert/strict';
+import {diagnosticFixture} from './diagnostic-fixture.mjs';
 const root=resolve(process.argv[2] || 'output/BMSPORT-YVN-Windows');
 const directory=mkdtempSync(join(tmpdir(),'bmsport-portable-check-'));
 const runtime=join(root,'runtime/node.exe');let child;
@@ -14,6 +15,9 @@ try{
  const page=await fetch(url);assert.equal(page.status,200);assert.match(await page.text(),/BMSPORT/);
  assert.deepEqual(await (await fetch(url+'/api/visits')).json(),[]);
  const decoded=await (await fetch(url+'/api/vin/decode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vin:'WDB2030351A000001'})})).json();assert.equal(decoded.brand,'Mercedes-Benz');
+ const scan=await diagnosticFixture({scan:true});
+ const extraction=await fetch(url+'/api/diagnostic/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:scan.toString('base64')})});assert.equal(extraction.status,200);
+ const analysis=await extraction.json();assert.ok(analysis.ocrPages?.length);assert.ok(analysis.faults.some(fault=>fault.code==='P0016'));
  const modulePath=pathToFileURL(join(root,'server/diagnostic.js')).href;
  const code=`const {interpretDiagnostic}=await import(${JSON.stringify(modulePath)});const rows=await interpretDiagnostic('DME\\nP0300 '+String.fromCodePoint(1055,1088,1086,1087,1091,1089,1082,1080,32,1079,1072,1078,1080,1075,1072,1085,1080,1103));if(!rows.length||/[\\u0400-\\u04ff]/.test(rows[0].description))process.exit(1);console.log('Packaged translation OK');`;
  console.log(execFileSync(runtime,['--input-type=module','-e',code],{cwd:root,encoding:'utf8',timeout:180000,windowsHide:true}).trim());
