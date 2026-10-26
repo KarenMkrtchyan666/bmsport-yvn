@@ -17,9 +17,13 @@ jobs:
           echo "SIMULATOR_ID=$id" >> "$GITHUB_ENV"
       - name: Build and test SwiftUI app
         run: |
-          xcodebuild -project BMSport.xcodeproj -scheme BMSport -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath Build build-for-testing CODE_SIGNING_ALLOWED=NO
-          /usr/libexec/PlistBuddy -c Print:CFBundleIdentifier Build/Build/Products/Debug-iphonesimulator/BMSport.app/Info.plist
-          xcodebuild -project BMSport.xcodeproj -scheme BMSport -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath Build -parallel-testing-enabled NO -resultBundlePath TestResults test-without-building CODE_SIGNING_ALLOWED=NO
+          xcodebuild -project BMSport.xcodeproj -scheme BMSport -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath Build build-for-testing CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES
+          plutil -p Build/Build/Products/Debug-iphonesimulator/BMSport.app/Info.plist
+          swift -e 'import Foundation; let b = Bundle(url: URL(fileURLWithPath: "Build/Build/Products/Debug-iphonesimulator/BMSport.app")); print("Foundation bundle:", b?.bundleIdentifier ?? "NIL"); print(b?.infoDictionary ?? [:])'
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          xcrun simctl install "$SIMULATOR_ID" Build/Build/Products/Debug-iphonesimulator/BMSport.app
+          xcodebuild -project BMSport.xcodeproj -scheme BMSport -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath Build -parallel-testing-enabled NO -resultBundlePath TestResults test-without-building CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES
       - uses: actions/upload-artifact@v4
         if: always()
         with:
