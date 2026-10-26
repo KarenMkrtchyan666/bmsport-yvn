@@ -1,6 +1,6 @@
 import {mkdirSync,copyFileSync,writeFileSync,readFileSync} from 'node:fs';
 import {bmwBodies} from '../public/bmw-bodies.js';
-const root='BMSport/Resources';mkdirSync(root,{recursive:true});
+const root='BMSport/CatalogData';mkdirSync(root,{recursive:true});
 for(const [source,name] of [['public/models.json','models.json'],['assets/vin/bmw-production-codes.json','bmw-production-codes.json'],['assets/vin/mercedes-types.json','mercedes-types.json']])copyFileSync(source,`${root}/${name}`);
 writeFileSync(`${root}/bmw-bodies.json`,JSON.stringify(bmwBodies));
 const brandSource=readFileSync('public/brands.js','utf8').split('].sort')[0];

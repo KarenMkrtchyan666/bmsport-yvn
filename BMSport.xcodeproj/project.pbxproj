@@ -21,7 +21,7 @@
 000000000000000000000024 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleStyle.swift; sourceTree = "<group>"; };
 000000000000000000000025 = { isa = PBXBuildFile; fileRef = 000000000000000000000024; };
 00000000000000000000000B = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BMSport.app; sourceTree = BUILT_PRODUCTS_DIR; };
-000000000000000000000026 = { isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
+000000000000000000000026 = { isa = PBXFileReference; lastKnownFileType = folder; path = CatalogData; sourceTree = "<group>"; };
 000000000000000000000027 = { isa = PBXBuildFile; fileRef = 000000000000000000000026; };
 000000000000000000000028 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 000000000000000000000029 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };

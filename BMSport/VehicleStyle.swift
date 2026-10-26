@@ -6,7 +6,7 @@ enum VehicleStyle {
     static func key(_ value: String) -> String { value.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "en")).filter { $0.isASCII && $0.isLetter || $0.isNumber }.lowercased() }
     static func logo(_ brand: String) -> UIImage? {
         guard let item = logos[key(brand)] else { return nil }
-        return UIImage(contentsOfFile: Bundle.main.bundlePath + "/Resources" + item.logo)
+        return UIImage(contentsOfFile: Bundle.main.bundlePath + "/CatalogData" + item.logo)
     }
     static func accent(_ brand: String) -> Color {
         switch key(brand) {

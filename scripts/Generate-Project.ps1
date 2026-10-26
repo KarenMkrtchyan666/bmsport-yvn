@@ -24,7 +24,7 @@ foreach ($name in @('BMSport', 'BMSportTests', 'BMSportUITests')) {
     Obj $product "isa = PBXFileReference; explicitFileType = $filetype; includeInIndex = 0; path = $name.$ext; sourceTree = BUILT_PRODUCTS_DIR;"
     $resourceBuilds = @()
     if ($isApp) {
-        foreach ($folder in @('Resources')) {
+        foreach ($folder in @('CatalogData')) {
             $resourceRef = Id; $resourceBuild = Id; $refs += $resourceRef; $resourceBuilds += $resourceBuild
             Obj $resourceRef "isa = PBXFileReference; lastKnownFileType = folder; path = $folder; sourceTree = `"<group>`";"
             Obj $resourceBuild "isa = PBXBuildFile; fileRef = $resourceRef;"

@@ -6,7 +6,7 @@ enum VehicleCatalog {
     struct Mercedes: Decodable { let series, trim, chassis, bodyStyle: String }
     struct Match { let brand, model, vehicle, bodyStyle: String }
     static func resource<T: Decodable>(_ name: String, as type: T.Type) -> T? {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "json", subdirectory: "Resources"), let data = try? Data(contentsOf: url) else { return nil }
+        guard let url = Bundle.main.url(forResource: name, withExtension: "json", subdirectory: "CatalogData"), let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(type, from: data)
     }
     static let brands = resource("brands", as: [String].self) ?? []
