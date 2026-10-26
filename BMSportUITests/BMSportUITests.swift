@@ -5,7 +5,14 @@ final class BMSportUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing"]
         app.launch()
-        func reveal(_ element: XCUIElement) { for _ in 0..<18 { if element.isHittable { return }; app.swipeUp() } }
+        func reveal(_ element: XCUIElement) {
+            // Close the keyboard before scrolling the lazy Form; otherwise swipes can hit the keyboard.
+            let done = app.buttons["Готово"].firstMatch
+            if done.exists && done.isHittable { done.tap() }
+            for _ in 0..<12 { if element.isHittable { return }; app.swipeUp() }
+            for _ in 0..<12 { if element.isHittable { return }; app.swipeDown() }
+            XCTFail("Field or action could not be reached: \(element.identifier)")
+        }
         app.buttons["Новый отчёт"].tap()
         func fill(_ id: String, _ value: String) {
             let field = app.textFields[id]
