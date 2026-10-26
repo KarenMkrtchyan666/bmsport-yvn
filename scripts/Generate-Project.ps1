@@ -22,10 +22,18 @@ foreach ($name in @('BMSport', 'BMSportTests', 'BMSportUITests')) {
     $filetype = if ($isApp) { 'wrapper.application' } else { 'wrapper.cfbundle' }
     $productType = if ($isApp) { 'com.apple.product-type.application' } elseif ($name -eq 'BMSportTests') { 'com.apple.product-type.bundle.unit-test' } else { 'com.apple.product-type.bundle.ui-testing' }
     Obj $product "isa = PBXFileReference; explicitFileType = $filetype; includeInIndex = 0; path = $name.$ext; sourceTree = BUILT_PRODUCTS_DIR;"
+    $resourceBuilds = @()
+    if ($isApp) {
+        foreach ($folder in @('Resources', 'en.lproj', 'ru.lproj')) {
+            $resourceRef = Id; $resourceBuild = Id; $refs += $resourceRef; $resourceBuilds += $resourceBuild
+            Obj $resourceRef "isa = PBXFileReference; lastKnownFileType = folder; path = $folder; sourceTree = `"<group>`";"
+            Obj $resourceBuild "isa = PBXBuildFile; fileRef = $resourceRef;"
+        }
+    }
     Obj $group "isa = PBXGroup; children = ($($refs -join ',')); path = $name; sourceTree = `"<group>`";"
     Obj $sources "isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ($($builds -join ',')); runOnlyForDeploymentPostprocessing = 0;"
     Obj $frameworks 'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;'
-    Obj $resources 'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;'
+    Obj $resources "isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ($($resourceBuilds -join ',')); runOnlyForDeploymentPostprocessing = 0;"
     $settings = 'CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 1.0; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; PRODUCT_NAME = "$(TARGET_NAME)";'
     $settings += " PRODUCT_BUNDLE_IDENTIFIER = am.bmsport.yvn.$name;"
     $dependencies = ''

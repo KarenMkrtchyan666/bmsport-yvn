@@ -1,0 +1,11 @@
+import {mkdirSync,copyFileSync,writeFileSync,readFileSync} from 'node:fs';
+import {bmwBodies} from '../public/bmw-bodies.js';
+const root='BMSport/Resources';mkdirSync(root,{recursive:true});
+for(const [source,name] of [['public/models.json','models.json'],['assets/vin/bmw-production-codes.json','bmw-production-codes.json'],['assets/vin/mercedes-types.json','mercedes-types.json']])copyFileSync(source,`${root}/${name}`);
+writeFileSync(`${root}/bmw-bodies.json`,JSON.stringify(bmwBodies));
+const brandSource=readFileSync('public/brands.js','utf8').split('].sort')[0];
+writeFileSync(`${root}/brands.json`,JSON.stringify([...brandSource.matchAll(/'([^']+)'/g)].map(m=>m[1])));
+const logos=JSON.parse(readFileSync('public/brand-logos.json','utf8'));mkdirSync(`${root}/brand-logos`,{recursive:true});
+for(const item of Object.values(logos))copyFileSync(`public${item.logo}`,`${root}${item.logo}`);
+writeFileSync(`${root}/brand-logos.json`,JSON.stringify(logos));
+console.log('iOS resources prepared: local vehicle catalogs and logos.');

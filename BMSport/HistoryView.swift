@@ -6,6 +6,9 @@ struct HistoryView: View {
     @State private var search = ""
     @State private var newReport = false
     @State private var error: String?
+    @State private var selectedModel = ""
+    @AppStorage("bmsport-language") private var language = "ru"
+    private var modelNames: [String] { Array(Set(reports.compactMap { try? $0.read().modelIdentity }.filter { !$0.isEmpty })).sorted { $0.localizedStandardCompare($1) == .orderedAscending } }
     var body: some View {
         NavigationStack {
             List {
@@ -17,6 +20,10 @@ struct HistoryView: View {
                     }.padding(.vertical, 8)
                 }
                 Section("История диагностики") {
+                    Picker("Модель автомобиля", selection: $selectedModel) {
+                        Text("Все модели").tag("")
+                        ForEach(modelNames, id: \.self) { Text($0).tag($0) }
+                    }
                     ForEach(reports.filter(matches)) { report in
                         if let data = try? report.read() {
                             NavigationLink {
@@ -38,13 +45,19 @@ struct HistoryView: View {
             }
             .navigationTitle("Отчёты")
             .searchable(text: $search, prompt: "Клиент, телефон, VIN, номер, автомобиль")
-            .toolbar { Button { newReport = true } label: { Image(systemName: "plus") }.accessibilityLabel("Новый отчёт") }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Picker("Язык / Language", selection: $language) { Text("Русский").tag("ru"); Text("English").tag("en") }.pickerStyle(.menu) }
+                ToolbarItem(placement: .topBarTrailing) { Button { newReport = true } label: { Image(systemName: "plus") }.accessibilityLabel("Новый отчёт") }
+            }
             .sheet(isPresented: $newReport) { NavigationStack { EditorView(report: nil, initial: ReportData()) } }
+            .environment(\.locale, Locale(identifier: language))
+            .preferredColorScheme(.dark)
         }
     }
     private func matches(_ report: DiagnosticReport) -> Bool {
-        guard !search.isEmpty else { return true }
         guard let d = try? report.read() else { return true }
+        guard selectedModel.isEmpty || d.modelIdentity == selectedModel else { return false }
+        guard !search.isEmpty else { return true }
         return [d.client, d.phone, d.vehicle, d.vin, d.plate].joined(separator: " ").localizedCaseInsensitiveContains(search)
     }
 }

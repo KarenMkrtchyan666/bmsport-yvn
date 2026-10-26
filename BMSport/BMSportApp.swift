@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 @main struct BMSportApp: App {
+    @AppStorage("bmsport-language") private var language = "ru"
     private let container: ModelContainer?
     private let startupError: String?
     init() {
@@ -19,7 +20,8 @@ import SwiftData
     var body: some Scene {
         WindowGroup {
             if let container {
-                HistoryView().modelContainer(container).tint(.blue)
+                HistoryView().modelContainer(container).tint(VehicleStyle.accent(""))
+                    .environment(\.locale, Locale(identifier: language)).preferredColorScheme(.dark)
             } else {
                 ContentUnavailableView {
                     Label("Не удалось открыть историю", systemImage: "externaldrive.badge.exclamationmark")

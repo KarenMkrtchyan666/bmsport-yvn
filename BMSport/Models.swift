@@ -6,6 +6,8 @@ struct Fault: Codable, Identifiable, Equatable {
     var code = ""
     var description = ""
     var resolved = false
+    var block: String?
+    var originalDescription: String?
 }
 
 struct ReportData: Codable, Equatable {
@@ -21,6 +23,15 @@ struct ReportData: Codable, Equatable {
     var notes = ""
     var work = ""
     var recommendations = ""
+    // Optional additions keep every legacy JSON payload readable without changing SwiftData.
+    var brand: String?
+    var model: String?
+    var bodyStyle: String?
+    var diagnosticText: String?
+    var diagnosticFile: String?
+    var diagnosticName: String?
+
+    var modelIdentity: String { [brand ?? "", model ?? ""].filter { !$0.isEmpty }.joined(separator: " ").isEmpty ? vehicle : [brand ?? "", model ?? ""].filter { !$0.isEmpty }.joined(separator: " ") }
 
     var validation: [String] {
         var errors: [String] = []

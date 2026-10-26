@@ -1,0 +1,20 @@
+import {cpSync,mkdirSync,copyFileSync,writeFileSync,existsSync,statSync} from 'node:fs';
+import {join,resolve} from 'node:path';
+import {execFileSync} from 'node:child_process';
+const root=resolve('.'),destination=resolve(process.argv[2] || 'output/BMSPORT-YVN-Windows');
+if(process.platform!=='win32' || process.arch!=='x64')throw new Error('Build on Windows x64 with Node.js 24+. Native OCR/ONNX modules must match the target.');
+if(Number(process.versions.node.split('.')[0])<24)throw new Error('Node.js 24+ required');
+if(!destination.startsWith(root+'\\output\\') || existsSync(destination))throw new Error('Use a new build directory inside output/.');
+for(const model of ['de','ru','mul'])for(const file of ['encoder_model_quantized.onnx','decoder_model_merged_quantized.onnx'])if(!existsSync(`assets/translation/opus-mt-${model}-en/onnx/${file}`))throw new Error('Run setup-translation.mjs for all three models first.');
+mkdirSync(destination,{recursive:true});
+for(const dir of ['public','server','config','assets'])cpSync(dir,join(destination,dir),{recursive:true});
+// Install only runtime dependencies in the new folder; never copy the working customer database.
+for(const file of ['package.json','package-lock.json','START-WINDOWS.cmd'])copyFileSync(file,join(destination,file));
+mkdirSync(join(destination,'scripts'));copyFileSync('scripts/desktop-launcher.mjs',join(destination,'scripts/desktop-launcher.mjs'));
+execFileSync('cmd.exe',['/d','/c','npm.cmd ci --omit=dev --no-audit --no-fund'],{cwd:destination,stdio:'inherit',windowsHide:true});
+mkdirSync(join(destination,'runtime'));copyFileSync(process.execPath,join(destination,'runtime/node.exe'));
+mkdirSync(join(destination,'data'));
+writeFileSync(join(destination,'READ-ME.txt'),'BMSPORT YVN — Windows x64\r\n\r\nExtract this entire folder, then double-click START-WINDOWS.cmd.\r\nNo Node.js install, external server or connection to the developer PC is required.\r\nKeep the console open while using the app. Ctrl+C stops it.\r\nDatabase and attachments: data/bmsport.sqlite. Back up the entire data folder.\r\nOCR, PDF and translation models are included. Internet is optional for VIN online fallbacks and reference photos.\r\nDo not run directly inside the ZIP. Each extracted copy starts with an empty database.\r\nThis build is for Windows x64 only. iOS source is available separately in the repository.\r\n');
+const archive=destination+'.zip';if(existsSync(archive))throw new Error('Archive already exists');
+execFileSync('tar.exe',['-a','-c','-f',archive,'-C',resolve(destination,'..'),destination.split('\\').at(-1)],{stdio:'inherit',windowsHide:true});
+console.log(`Portable archive: ${archive} (${Math.round(statSync(archive).size/1024/1024)} MB)`);

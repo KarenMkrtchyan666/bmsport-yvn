@@ -26,6 +26,7 @@ enum PDFExporter {
         for (i, fault) in report.faults.enumerated() {
             append("\(i + 1). \(fault.code) — \(fault.resolved ? "УСТРАНЕНА / Վերացված" : "ОСТАЛАСЬ / Մնացել է")", heading: true)
             append(fault.description.isEmpty ? "Описание не указано" : fault.description)
+            if let block = fault.block, !block.isEmpty { append("Блок / Control unit: \(block)") }
         }
         for (title, content) in [("ОПИСАНИЕ / Նկարագրություն", report.notes), ("ВЫПОЛНЕННЫЕ РАБОТЫ / Կատարված աշխատանքներ", report.work), ("РЕКОМЕНДАЦИИ / Խորհուրդներ", report.recommendations)] {
             append(title, heading: true); append(content.isEmpty ? "—" : content)
