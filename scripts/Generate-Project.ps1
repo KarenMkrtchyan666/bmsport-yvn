@@ -24,11 +24,19 @@ foreach ($name in @('BMSport', 'BMSportTests', 'BMSportUITests')) {
     Obj $product "isa = PBXFileReference; explicitFileType = $filetype; includeInIndex = 0; path = $name.$ext; sourceTree = BUILT_PRODUCTS_DIR;"
     $resourceBuilds = @()
     if ($isApp) {
-        foreach ($folder in @('Resources', 'en.lproj', 'ru.lproj')) {
+        foreach ($folder in @('Resources')) {
             $resourceRef = Id; $resourceBuild = Id; $refs += $resourceRef; $resourceBuilds += $resourceBuild
             Obj $resourceRef "isa = PBXFileReference; lastKnownFileType = folder; path = $folder; sourceTree = `"<group>`";"
             Obj $resourceBuild "isa = PBXBuildFile; fileRef = $resourceRef;"
         }
+        $localizedRefs = @()
+        foreach ($language in @('en', 'ru')) {
+            $localizedRef = Id; $localizedRefs += $localizedRef
+            Obj $localizedRef "isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = $language; path = $language.lproj/Localizable.strings; sourceTree = `"<group>`";"
+        }
+        $variant = Id; $localizedBuild = Id; $refs += $variant; $resourceBuilds += $localizedBuild
+        Obj $variant "isa = PBXVariantGroup; children = ($($localizedRefs -join ',')); name = Localizable.strings; sourceTree = `"<group>`";"
+        Obj $localizedBuild "isa = PBXBuildFile; fileRef = $variant;"
     }
     Obj $group "isa = PBXGroup; children = ($($refs -join ',')); path = $name; sourceTree = `"<group>`";"
     Obj $sources "isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ($($builds -join ',')); runOnlyForDeploymentPostprocessing = 0;"
